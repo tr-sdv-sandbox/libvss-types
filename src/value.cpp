@@ -84,7 +84,9 @@ const char* value_type_to_string(ValueType type) {
 
 std::optional<ValueType> value_type_from_string(const std::string& str) {
     // Convert to uppercase for case-insensitive matching
-    std::string upper = str;
+    std::string upper;
+    upper.reserve(str.size());
+    upper = str;
     std::transform(upper.begin(), upper.end(), upper.begin(),
                    [](unsigned char c){ return std::toupper(c); });
 

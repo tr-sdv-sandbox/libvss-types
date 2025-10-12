@@ -89,19 +89,19 @@ public:
      * @brief Get the struct type name
      * @return Type name (e.g., "DeliveryInfo", "Position")
      */
-    const std::string& type_name() const { return type_name_; }
+    const std::string& type_name() const noexcept { return type_name_; }
 
     /**
      * @brief Get struct description
      * @return Human-readable description
      */
-    const std::string& description() const { return description_; }
+    const std::string& description() const noexcept { return description_; }
 
     /**
      * @brief Get all field definitions
      * @return Map of field_name → FieldDefinition
      */
-    const std::map<std::string, FieldDefinition>& fields() const { return fields_; }
+    const std::map<std::string, FieldDefinition>& fields() const noexcept { return fields_; }
 
     /**
      * @brief Add a field to the struct definition
@@ -158,7 +158,7 @@ public:
      * @brief Get the struct type name
      * @return Type name (e.g., "DeliveryInfo")
      */
-    const std::string& type_name() const { return type_name_; }
+    const std::string& type_name() const noexcept { return type_name_; }
 
     /**
      * @brief Set the struct type name
@@ -172,7 +172,7 @@ public:
      * @brief Get all field values
      * @return Map of field_name → Value
      */
-    const std::map<std::string, Value>& fields() const { return fields_; }
+    const std::map<std::string, Value>& fields() const noexcept { return fields_; }
 
     /**
      * @brief Set a field value
@@ -255,7 +255,7 @@ public:
      *
      * @return Map of type_name → StructDefinition
      */
-    const std::map<std::string, StructDefinition>& all_structs() const {
+    const std::map<std::string, StructDefinition>& all_structs() const noexcept {
         return structs_;
     }
 
