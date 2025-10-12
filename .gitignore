@@ -1,0 +1,77 @@
+# Build directories
+build/
+cmake-build-*/
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# Generated documentation
+docs/html/
+docs/latex/
+doxygen_warnings.txt
+
+# Package manager
+conan.lock
+conaninfo.txt
+conanbuildinfo.*
+graph_info.json
+
+# Coverage
+*.gcov
+*.gcda
+*.gcno
+coverage/
+*.profdata
+*.profraw
+
+# Valgrind
+*.memcheck
+vgcore.*
+
+# Temporary files
+*.bak
+*.tmp
+*.temp
