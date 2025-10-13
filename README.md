@@ -1,29 +1,28 @@
 # libvss-types
 
-**Backend-agnostic VSS type definitions for C++**
+Backend-agnostic VSS type definitions for C++17+.
 
-A shared foundation library providing type-safe, runtime-flexible VSS (Vehicle Signal Specification) types for C++17+. Designed to be used by multiple VSS implementations including libVSSDAG, kuksa-cpp-client, and other VSS tools.
+Provides type-safe VSS (Vehicle Signal Specification) types for use across multiple VSS implementations.
 
 ## Features
 
-- ✅ **VSS 4.0 Support** - Full support for structs, arrays, and nested types
-- ✅ **Signal Quality** - Sophisticated error handling (VALID/INVALID/NOT_AVAILABLE/STALE/OUT_OF_RANGE)
-- ✅ **Type-Safe** - Compile-time and runtime type checking
-- ✅ **Backend-Agnostic** - No dependencies on protobuf, gRPC, or KUKSA
-- ✅ **Lightweight** - Header-only where possible, minimal dependencies
-- ✅ **Well-Tested** - Comprehensive test suite with Google Test
+- VSS 4.0 support (structs, arrays, nested types)
+- Signal quality indicators (VALID/INVALID/NOT_AVAILABLE/STALE/OUT_OF_RANGE)
+- Type-safe value variant with compile-time and runtime checking
+- No dependencies on protobuf, gRPC, or KUKSA
+- Minimal dependencies, header-only where possible
 
-## Design Philosophy
+## Scope
 
-**libvss-types is deliberately minimal:**
-- ✅ Type definitions (`Value`, `ValueType`, `StructDefinition`)
-- ✅ Signal quality indicators (`SignalQuality`, `QualifiedValue`)
-- ✅ Type utilities (conversions, compatibility checks)
-- ❌ NO networking (that's for client libraries)
-- ❌ NO KUKSA-specific code (keep it generic)
-- ❌ NO signal processing (that's for libVSSDAG)
+This library provides:
+- Type definitions (`Value`, `ValueType`, `StructDefinition`)
+- Signal quality indicators (`SignalQuality`, `QualifiedValue`)
+- Type utilities (conversions, compatibility checks)
 
-This library is the **shared foundation** that other libraries build upon.
+This library does NOT provide:
+- Networking or communication
+- Signal processing or transformations
+- Backend-specific implementations
 
 ## Quick Start
 
@@ -217,35 +216,6 @@ is_struct(ValueType::STRUCT);         // true
 is_empty(value);                      // true if value is std::monostate
 ```
 
-## Integration with Other Libraries
-
-### libVSSDAG (CAN Transformation)
-
-```cpp
-// Use for signal values and quality indicators
-DynamicQualifiedValue signal{Value{speed_value}, SignalQuality::VALID};
-
-// Use struct definitions for complex CAN mappings
-StructValue battery_state{"BatteryState"};
-battery_state.set_field("Voltage", voltage);
-battery_state.set_field("Current", current);
-battery_state.set_field("Temperature", temp);
-```
-
-### kuksa-cpp-client (KUKSA Client)
-
-```cpp
-// Convert between libvss-types and KUKSA protobuf
-Value vss_value = 120.5f;
-// ... convert to KUKSA Datapoint protobuf
-
-// Use QualifiedValue for rich error handling
-QualifiedValue<float> speed = client->get_qualified(speed_handle);
-if (speed.is_stale()) {
-    LOG(WARNING) << "Speed value is stale (age: " << speed.age().count() << "ms)";
-}
-```
-
 ## Examples
 
 See the `examples/` directory for complete examples:
@@ -269,25 +239,19 @@ make
 ctest
 ```
 
-Tests use Google Test and cover:
-- Value type conversions
-- Struct creation and validation
-- Signal quality indicators
-- Type compatibility checks
+Test suite includes:
+- **Value types** - Type conversions, introspection, compatibility
+- **Structs** - Definitions, registry, validation, nested structs, arrays
+- **Quality** - Signal quality indicators, qualified values
+- **VSS integration** - Validates complete VSS spec support (all types + structs)
+
+The VSS integration test uses a test-only JSON parser to validate type completeness. The library itself has no JSON dependency - struct definitions come from runtime metadata in production.
 
 ## Rationale
 
 ### Why a separate library?
-
-**Before:**
-- libVSSDAG had its own struct types
-- sdk-x (kuksa-cpp-client) had its own types
-- Duplication, inconsistency, maintenance burden
-
-**After:**
 - Single source of truth for VSS types
 - Shared across all VSS C++ implementations
-- Fix bugs once, benefit everywhere
 - Consistent semantics and behavior
 
 ### Why not use vss-tools protobuf output?
@@ -314,55 +278,31 @@ This is for **runtime signal handling** in brokers and transformers.
 
 ## Design Decisions
 
-### std::variant instead of inheritance
-
-✅ **Chosen:** `using Value = std::variant<bool, int32_t, ...>`
-
-❌ **Not chosen:** Virtual base class `class Value { virtual ~Value(); }`
-
-**Why:**
-- std::variant is type-safe at compile time
+**std::variant for Value type**
+- Type-safe at compile time
 - No heap allocations for primitives
 - No vtable overhead
-- std::visit for type-safe dispatch
 
-### shared_ptr for structs
-
-✅ **Chosen:** `std::shared_ptr<StructValue>` in Value variant
-
-**Why:**
+**shared_ptr for structs**
 - Avoids circular dependency (struct can contain struct)
 - std::variant requires complete types
-- Efficient copying (just pointer copy)
 - Allows nested structs without recursion limits
 
-### Backend-agnostic design
-
-❌ **No protobuf dependency** - Keep protobuf conversion in client libraries
-❌ **No gRPC dependency** - This is pure types, no networking
-❌ **No KUKSA dependency** - Works with any VSS backend
-
-**Why:**
-- Maximum reusability
-- Faster compilation
-- Smaller binary size
-- Use in embedded systems
+**Backend-agnostic**
+- No protobuf, gRPC, or KUKSA dependencies
+- Conversions handled by client libraries
 
 ## Roadmap
-
-- [ ] YAML/JSON serialization for types
-- [ ] Load struct definitions from vss-tools JSON output
 - [ ] Signal metadata (min/max, unit, description)
 - [ ] Type coercion utilities (safe conversions)
-- [ ] Protobuf interop helpers (optional addon)
+- [ ] Protobuf interop helpers??
 
 ## Contributing
 
-This library is designed to be **stable and minimal**. New features should:
+New features should:
 1. Be fundamental to VSS type representation
-2. Benefit multiple consumers (libVSSDAG, kuksa-cpp-client, etc.)
-3. Have no external dependencies
-4. Be well-tested
+2. Have no external dependencies
+3. Be well-tested
 
 ## License
 
@@ -370,7 +310,5 @@ Apache 2.0
 
 ## See Also
 
-- [libVSSDAG](https://github.com/skarlsson/libVSSDAG) - CAN → VSS transformation with DAG processing
-- [kuksa-cpp-client](../sdk-x) - C++ client for KUKSA databroker
 - [VSS Specification](https://covesa.github.io/vehicle_signal_specification/) - Official VSS documentation
-- [vss-tools](https://github.com/COVESA/vss-tools) - VSS tooling (code generation, validation)
+- [vss-tools](https://github.com/COVESA/vss-tools) - VSS tooling

@@ -1,0 +1,180 @@
+{
+  "Vehicle": {
+    "type": "branch",
+    "description": "High-level vehicle data",
+    "children": {
+      "Test": {
+        "type": "branch",
+        "description": "Test signals for validation",
+        "children": {
+          "BoolSensor": {
+            "type": "sensor",
+            "datatype": "boolean",
+            "description": "Test bool sensor"
+          },
+          "Int32Sensor": {
+            "type": "sensor",
+            "datatype": "int32",
+            "description": "Test int32 sensor"
+          },
+          "UInt32Sensor": {
+            "type": "sensor",
+            "datatype": "uint32",
+            "description": "Test uint32 sensor"
+          },
+          "Int64Sensor": {
+            "type": "sensor",
+            "datatype": "int64",
+            "description": "Test int64 sensor"
+          },
+          "UInt64Sensor": {
+            "type": "sensor",
+            "datatype": "uint64",
+            "description": "Test uint64 sensor"
+          },
+          "FloatSensor": {
+            "type": "sensor",
+            "datatype": "float",
+            "description": "Test float sensor"
+          },
+          "DoubleSensor": {
+            "type": "sensor",
+            "datatype": "double",
+            "description": "Test double sensor"
+          },
+          "StringSensor": {
+            "type": "sensor",
+            "datatype": "string",
+            "description": "Test string sensor"
+          },
+          "BoolArraySensor": {
+            "type": "sensor",
+            "datatype": "boolean[]",
+            "description": "Test bool array sensor"
+          },
+          "Int32ArraySensor": {
+            "type": "sensor",
+            "datatype": "int32[]",
+            "description": "Test int32 array sensor"
+          },
+          "UInt32ArraySensor": {
+            "type": "sensor",
+            "datatype": "uint32[]",
+            "description": "Test uint32 array sensor"
+          },
+          "Int64ArraySensor": {
+            "type": "sensor",
+            "datatype": "int64[]",
+            "description": "Test int64 array sensor"
+          },
+          "UInt64ArraySensor": {
+            "type": "sensor",
+            "datatype": "uint64[]",
+            "description": "Test uint64 array sensor"
+          },
+          "FloatArraySensor": {
+            "type": "sensor",
+            "datatype": "float[]",
+            "description": "Test float array sensor"
+          },
+          "DoubleArraySensor": {
+            "type": "sensor",
+            "datatype": "double[]",
+            "description": "Test double array sensor"
+          },
+          "StringArraySensor": {
+            "type": "sensor",
+            "datatype": "string[]",
+            "description": "Test string array sensor"
+          },
+          "Position": {
+            "type": "struct",
+            "description": "Geographic position struct",
+            "children": {
+              "Latitude": {
+                "type": "property",
+                "datatype": "double",
+                "description": "Latitude in degrees"
+              },
+              "Longitude": {
+                "type": "property",
+                "datatype": "double",
+                "description": "Longitude in degrees"
+              },
+              "Altitude": {
+                "type": "property",
+                "datatype": "double",
+                "description": "Altitude in meters"
+              }
+            }
+          },
+          "DeliveryInfo": {
+            "type": "struct",
+            "description": "Delivery information with nested struct",
+            "children": {
+              "Address": {
+                "type": "property",
+                "datatype": "string",
+                "description": "Delivery address"
+              },
+              "Receiver": {
+                "type": "property",
+                "datatype": "string",
+                "description": "Name of receiver"
+              },
+              "Priority": {
+                "type": "property",
+                "datatype": "int32",
+                "description": "Delivery priority"
+              },
+              "Location": {
+                "type": "property",
+                "datatype": "struct",
+                "struct_type": "Vehicle.Test.Position",
+                "description": "Delivery location"
+              }
+            }
+          },
+          "Waypoint": {
+            "type": "struct",
+            "description": "Navigation waypoint",
+            "children": {
+              "Latitude": {
+                "type": "property",
+                "datatype": "double",
+                "description": "Waypoint latitude"
+              },
+              "Longitude": {
+                "type": "property",
+                "datatype": "double",
+                "description": "Waypoint longitude"
+              },
+              "Name": {
+                "type": "property",
+                "datatype": "string",
+                "description": "Waypoint name"
+              }
+            }
+          },
+          "Route": {
+            "type": "struct",
+            "description": "Route with array of waypoints",
+            "children": {
+              "Name": {
+                "type": "property",
+                "datatype": "string",
+                "description": "Route name"
+              },
+              "Waypoints": {
+                "type": "property",
+                "datatype": "struct[]",
+                "struct_type": "Vehicle.Test.Waypoint",
+                "description": "Array of waypoints"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
