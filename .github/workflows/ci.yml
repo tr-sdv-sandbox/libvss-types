@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Build and test job
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            g++ \
+            cmake \
+            make \
+            libgtest-dev \
+            nlohmann-json3-dev
+
+      - name: Configure
+        run: |
+          mkdir -p build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=Release \
+                -DVSS_TYPES_BUILD_TESTS=ON \
+                -DVSS_TYPES_BUILD_EXAMPLES=ON \
+                ..
+
+      - name: Build
+        run: |
+          cd build
+          make -j$(nproc)
+
+      - name: Run tests
+        run: |
+          cd build
+          ctest --output-on-failure --verbose
+
+      - name: Install
+        run: |
+          cd build
+          sudo make install
+
+      - name: Verify installation
+        run: |
+          # Check headers are installed
+          test -f /usr/local/include/vss/value.hpp
+          test -f /usr/local/include/vss/struct.hpp
+          test -f /usr/local/include/vss/quality.hpp
+
+          # Check library is installed
+          test -f /usr/local/lib/libvss-types.a
+
+          # Check CMake config is installed
+          test -f /usr/local/lib/cmake/vss-types/vss-types-config.cmake
+
+          # Check pkg-config file is installed
+          test -f /usr/local/lib/pkgconfig/vss-types.pc
+
+          echo "✓ All installation files present"
