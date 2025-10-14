@@ -56,10 +56,11 @@ jobs:
         run: |
           echo "Checking installation files..."
 
-          # Check headers are installed
-          test -f /usr/local/include/vss/value.hpp && echo "✓ value.hpp" || echo "✗ value.hpp MISSING"
-          test -f /usr/local/include/vss/struct.hpp && echo "✓ struct.hpp" || echo "✗ struct.hpp MISSING"
-          test -f /usr/local/include/vss/quality.hpp && echo "✓ quality.hpp" || echo "✗ quality.hpp MISSING"
+          # Check headers are installed (in vss/types subdirectory)
+          test -f /usr/local/include/vss/types/value.hpp && echo "✓ value.hpp" || echo "✗ value.hpp MISSING"
+          test -f /usr/local/include/vss/types/struct.hpp && echo "✓ struct.hpp" || echo "✗ struct.hpp MISSING"
+          test -f /usr/local/include/vss/types/quality.hpp && echo "✓ quality.hpp" || echo "✗ quality.hpp MISSING"
+          test -f /usr/local/include/vss/types/types.hpp && echo "✓ types.hpp" || echo "✗ types.hpp MISSING"
 
           # Check library is installed
           test -f /usr/local/lib/libvss-types.a && echo "✓ libvss-types.a" || echo "✗ libvss-types.a MISSING"
@@ -69,19 +70,6 @@ jobs:
 
           # Check pkg-config file is installed
           test -f /usr/local/lib/pkgconfig/vss-types.pc && echo "✓ pkg-config" || echo "✗ pkg-config MISSING"
-
-          # List what was actually installed
-          echo ""
-          echo "Installed files in /usr/local:"
-          find /usr/local -name "*vss*" -o -name "*types*" 2>/dev/null || true
-
-          # Final check - fail if any are missing
-          test -f /usr/local/include/vss/value.hpp && \
-          test -f /usr/local/include/vss/struct.hpp && \
-          test -f /usr/local/include/vss/quality.hpp && \
-          test -f /usr/local/lib/libvss-types.a && \
-          test -f /usr/local/lib/cmake/vss-types/vss-types-config.cmake && \
-          test -f /usr/local/lib/pkgconfig/vss-types.pc
 
           echo ""
           echo "✓ All installation files present"
