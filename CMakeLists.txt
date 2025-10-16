@@ -41,6 +41,9 @@ target_compile_options(vss-types PRIVATE
 # Installation
 include(GNUInstallDirs)
 
+# Set the export name to create vss::types target (must be before install)
+set_target_properties(vss-types PROPERTIES EXPORT_NAME types)
+
 install(TARGETS vss-types
     EXPORT vss-types-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -53,6 +56,7 @@ install(DIRECTORY include/vss
 )
 
 # Export configuration
+# Export with custom target name "types" so namespace creates "vss::types"
 install(EXPORT vss-types-targets
     FILE vss-types-targets.cmake
     NAMESPACE vss::
