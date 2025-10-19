@@ -35,18 +35,26 @@ using Value = std::variant<
     std::monostate,              // No value (empty/uninitialized)
     // Primitive types
     bool,
+    int8_t,
+    int16_t,
     int32_t,
-    uint32_t,
     int64_t,
+    uint8_t,
+    uint16_t,
+    uint32_t,
     uint64_t,
     float,
     double,
     std::string,
     // Array types
     std::vector<bool>,
+    std::vector<int8_t>,
+    std::vector<int16_t>,
     std::vector<int32_t>,
-    std::vector<uint32_t>,
     std::vector<int64_t>,
+    std::vector<uint8_t>,
+    std::vector<uint16_t>,
+    std::vector<uint32_t>,
     std::vector<uint64_t>,
     std::vector<float>,
     std::vector<double>,
@@ -74,8 +82,12 @@ enum class ValueType {
     // Primitive types (matching KUKSA protobuf values where applicable)
     STRING       = 1,
     BOOL         = 2,
+    INT8         = 3,
+    INT16        = 4,
     INT32        = 5,
     INT64        = 6,
+    UINT8        = 7,
+    UINT16       = 8,
     UINT32       = 9,
     UINT64       = 10,
     FLOAT        = 11,
@@ -84,8 +96,12 @@ enum class ValueType {
     // Array types
     STRING_ARRAY = 20,
     BOOL_ARRAY   = 21,
+    INT8_ARRAY   = 22,
+    INT16_ARRAY  = 23,
     INT32_ARRAY  = 24,
     INT64_ARRAY  = 25,
+    UINT8_ARRAY  = 26,
+    UINT16_ARRAY = 27,
     UINT32_ARRAY = 28,
     UINT64_ARRAY = 29,
     FLOAT_ARRAY  = 30,
@@ -107,17 +123,25 @@ enum class ValueType {
 template<typename T>
 constexpr ValueType get_value_type() {
     if constexpr (std::is_same_v<T, bool>) return ValueType::BOOL;
+    else if constexpr (std::is_same_v<T, int8_t>) return ValueType::INT8;
+    else if constexpr (std::is_same_v<T, int16_t>) return ValueType::INT16;
     else if constexpr (std::is_same_v<T, int32_t>) return ValueType::INT32;
-    else if constexpr (std::is_same_v<T, uint32_t>) return ValueType::UINT32;
     else if constexpr (std::is_same_v<T, int64_t>) return ValueType::INT64;
+    else if constexpr (std::is_same_v<T, uint8_t>) return ValueType::UINT8;
+    else if constexpr (std::is_same_v<T, uint16_t>) return ValueType::UINT16;
+    else if constexpr (std::is_same_v<T, uint32_t>) return ValueType::UINT32;
     else if constexpr (std::is_same_v<T, uint64_t>) return ValueType::UINT64;
     else if constexpr (std::is_same_v<T, float>) return ValueType::FLOAT;
     else if constexpr (std::is_same_v<T, double>) return ValueType::DOUBLE;
     else if constexpr (std::is_same_v<T, std::string>) return ValueType::STRING;
     else if constexpr (std::is_same_v<T, std::vector<bool>>) return ValueType::BOOL_ARRAY;
+    else if constexpr (std::is_same_v<T, std::vector<int8_t>>) return ValueType::INT8_ARRAY;
+    else if constexpr (std::is_same_v<T, std::vector<int16_t>>) return ValueType::INT16_ARRAY;
     else if constexpr (std::is_same_v<T, std::vector<int32_t>>) return ValueType::INT32_ARRAY;
-    else if constexpr (std::is_same_v<T, std::vector<uint32_t>>) return ValueType::UINT32_ARRAY;
     else if constexpr (std::is_same_v<T, std::vector<int64_t>>) return ValueType::INT64_ARRAY;
+    else if constexpr (std::is_same_v<T, std::vector<uint8_t>>) return ValueType::UINT8_ARRAY;
+    else if constexpr (std::is_same_v<T, std::vector<uint16_t>>) return ValueType::UINT16_ARRAY;
+    else if constexpr (std::is_same_v<T, std::vector<uint32_t>>) return ValueType::UINT32_ARRAY;
     else if constexpr (std::is_same_v<T, std::vector<uint64_t>>) return ValueType::UINT64_ARRAY;
     else if constexpr (std::is_same_v<T, std::vector<float>>) return ValueType::FLOAT_ARRAY;
     else if constexpr (std::is_same_v<T, std::vector<double>>) return ValueType::DOUBLE_ARRAY;

@@ -17,12 +17,20 @@ ValueType get_value_type(const Value& value) {
             return ValueType::UNSPECIFIED;
         } else if constexpr (std::is_same_v<T, bool>) {
             return ValueType::BOOL;
+        } else if constexpr (std::is_same_v<T, int8_t>) {
+            return ValueType::INT8;
+        } else if constexpr (std::is_same_v<T, int16_t>) {
+            return ValueType::INT16;
         } else if constexpr (std::is_same_v<T, int32_t>) {
             return ValueType::INT32;
-        } else if constexpr (std::is_same_v<T, uint32_t>) {
-            return ValueType::UINT32;
         } else if constexpr (std::is_same_v<T, int64_t>) {
             return ValueType::INT64;
+        } else if constexpr (std::is_same_v<T, uint8_t>) {
+            return ValueType::UINT8;
+        } else if constexpr (std::is_same_v<T, uint16_t>) {
+            return ValueType::UINT16;
+        } else if constexpr (std::is_same_v<T, uint32_t>) {
+            return ValueType::UINT32;
         } else if constexpr (std::is_same_v<T, uint64_t>) {
             return ValueType::UINT64;
         } else if constexpr (std::is_same_v<T, float>) {
@@ -33,12 +41,20 @@ ValueType get_value_type(const Value& value) {
             return ValueType::STRING;
         } else if constexpr (std::is_same_v<T, std::vector<bool>>) {
             return ValueType::BOOL_ARRAY;
+        } else if constexpr (std::is_same_v<T, std::vector<int8_t>>) {
+            return ValueType::INT8_ARRAY;
+        } else if constexpr (std::is_same_v<T, std::vector<int16_t>>) {
+            return ValueType::INT16_ARRAY;
         } else if constexpr (std::is_same_v<T, std::vector<int32_t>>) {
             return ValueType::INT32_ARRAY;
-        } else if constexpr (std::is_same_v<T, std::vector<uint32_t>>) {
-            return ValueType::UINT32_ARRAY;
         } else if constexpr (std::is_same_v<T, std::vector<int64_t>>) {
             return ValueType::INT64_ARRAY;
+        } else if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
+            return ValueType::UINT8_ARRAY;
+        } else if constexpr (std::is_same_v<T, std::vector<uint16_t>>) {
+            return ValueType::UINT16_ARRAY;
+        } else if constexpr (std::is_same_v<T, std::vector<uint32_t>>) {
+            return ValueType::UINT32_ARRAY;
         } else if constexpr (std::is_same_v<T, std::vector<uint64_t>>) {
             return ValueType::UINT64_ARRAY;
         } else if constexpr (std::is_same_v<T, std::vector<float>>) {
@@ -62,16 +78,24 @@ const char* value_type_to_string(ValueType type) {
         case ValueType::UNSPECIFIED:  return "UNSPECIFIED";
         case ValueType::STRING:       return "STRING";
         case ValueType::BOOL:         return "BOOL";
+        case ValueType::INT8:         return "INT8";
+        case ValueType::INT16:        return "INT16";
         case ValueType::INT32:        return "INT32";
         case ValueType::INT64:        return "INT64";
+        case ValueType::UINT8:        return "UINT8";
+        case ValueType::UINT16:       return "UINT16";
         case ValueType::UINT32:       return "UINT32";
         case ValueType::UINT64:       return "UINT64";
         case ValueType::FLOAT:        return "FLOAT";
         case ValueType::DOUBLE:       return "DOUBLE";
         case ValueType::STRING_ARRAY: return "STRING_ARRAY";
         case ValueType::BOOL_ARRAY:   return "BOOL_ARRAY";
+        case ValueType::INT8_ARRAY:   return "INT8_ARRAY";
+        case ValueType::INT16_ARRAY:  return "INT16_ARRAY";
         case ValueType::INT32_ARRAY:  return "INT32_ARRAY";
         case ValueType::INT64_ARRAY:  return "INT64_ARRAY";
+        case ValueType::UINT8_ARRAY:  return "UINT8_ARRAY";
+        case ValueType::UINT16_ARRAY: return "UINT16_ARRAY";
         case ValueType::UINT32_ARRAY: return "UINT32_ARRAY";
         case ValueType::UINT64_ARRAY: return "UINT64_ARRAY";
         case ValueType::FLOAT_ARRAY:  return "FLOAT_ARRAY";
@@ -92,16 +116,24 @@ std::optional<ValueType> value_type_from_string(const std::string& str) {
 
     if (upper == "STRING") return ValueType::STRING;
     if (upper == "BOOL" || upper == "BOOLEAN") return ValueType::BOOL;
+    if (upper == "INT8") return ValueType::INT8;
+    if (upper == "INT16") return ValueType::INT16;
     if (upper == "INT32" || upper == "INT") return ValueType::INT32;
     if (upper == "INT64" || upper == "LONG") return ValueType::INT64;
+    if (upper == "UINT8") return ValueType::UINT8;
+    if (upper == "UINT16") return ValueType::UINT16;
     if (upper == "UINT32" || upper == "UNSIGNED") return ValueType::UINT32;
     if (upper == "UINT64" || upper == "ULONG") return ValueType::UINT64;
     if (upper == "FLOAT") return ValueType::FLOAT;
     if (upper == "DOUBLE") return ValueType::DOUBLE;
     if (upper == "STRING_ARRAY" || upper == "STRING[]") return ValueType::STRING_ARRAY;
     if (upper == "BOOL_ARRAY" || upper == "BOOL[]" || upper == "BOOLEAN[]") return ValueType::BOOL_ARRAY;
+    if (upper == "INT8_ARRAY" || upper == "INT8[]") return ValueType::INT8_ARRAY;
+    if (upper == "INT16_ARRAY" || upper == "INT16[]") return ValueType::INT16_ARRAY;
     if (upper == "INT32_ARRAY" || upper == "INT32[]" || upper == "INT[]") return ValueType::INT32_ARRAY;
     if (upper == "INT64_ARRAY" || upper == "INT64[]" || upper == "LONG[]") return ValueType::INT64_ARRAY;
+    if (upper == "UINT8_ARRAY" || upper == "UINT8[]") return ValueType::UINT8_ARRAY;
+    if (upper == "UINT16_ARRAY" || upper == "UINT16[]") return ValueType::UINT16_ARRAY;
     if (upper == "UINT32_ARRAY" || upper == "UINT32[]") return ValueType::UINT32_ARRAY;
     if (upper == "UINT64_ARRAY" || upper == "UINT64[]") return ValueType::UINT64_ARRAY;
     if (upper == "FLOAT_ARRAY" || upper == "FLOAT[]") return ValueType::FLOAT_ARRAY;
@@ -122,15 +154,19 @@ bool are_types_compatible(ValueType expected, ValueType actual) {
         return true;
     }
 
-    // Signed integer compatibility: int32 ↔ int64
-    if ((expected == ValueType::INT32 && actual == ValueType::INT64) ||
-        (expected == ValueType::INT64 && actual == ValueType::INT32)) {
+    // Signed integer compatibility: int8 ↔ int16 ↔ int32 ↔ int64
+    if ((expected == ValueType::INT8 || expected == ValueType::INT16 ||
+         expected == ValueType::INT32 || expected == ValueType::INT64) &&
+        (actual == ValueType::INT8 || actual == ValueType::INT16 ||
+         actual == ValueType::INT32 || actual == ValueType::INT64)) {
         return true;
     }
 
-    // Unsigned integer compatibility: uint32 ↔ uint64
-    if ((expected == ValueType::UINT32 && actual == ValueType::UINT64) ||
-        (expected == ValueType::UINT64 && actual == ValueType::UINT32)) {
+    // Unsigned integer compatibility: uint8 ↔ uint16 ↔ uint32 ↔ uint64
+    if ((expected == ValueType::UINT8 || expected == ValueType::UINT16 ||
+         expected == ValueType::UINT32 || expected == ValueType::UINT64) &&
+        (actual == ValueType::UINT8 || actual == ValueType::UINT16 ||
+         actual == ValueType::UINT32 || actual == ValueType::UINT64)) {
         return true;
     }
 
@@ -140,15 +176,19 @@ bool are_types_compatible(ValueType expected, ValueType actual) {
         return true;
     }
 
-    // Signed integer array compatibility: int32[] ↔ int64[]
-    if ((expected == ValueType::INT32_ARRAY && actual == ValueType::INT64_ARRAY) ||
-        (expected == ValueType::INT64_ARRAY && actual == ValueType::INT32_ARRAY)) {
+    // Signed integer array compatibility: int8[] ↔ int16[] ↔ int32[] ↔ int64[]
+    if ((expected == ValueType::INT8_ARRAY || expected == ValueType::INT16_ARRAY ||
+         expected == ValueType::INT32_ARRAY || expected == ValueType::INT64_ARRAY) &&
+        (actual == ValueType::INT8_ARRAY || actual == ValueType::INT16_ARRAY ||
+         actual == ValueType::INT32_ARRAY || actual == ValueType::INT64_ARRAY)) {
         return true;
     }
 
-    // Unsigned integer array compatibility: uint32[] ↔ uint64[]
-    if ((expected == ValueType::UINT32_ARRAY && actual == ValueType::UINT64_ARRAY) ||
-        (expected == ValueType::UINT64_ARRAY && actual == ValueType::UINT32_ARRAY)) {
+    // Unsigned integer array compatibility: uint8[] ↔ uint16[] ↔ uint32[] ↔ uint64[]
+    if ((expected == ValueType::UINT8_ARRAY || expected == ValueType::UINT16_ARRAY ||
+         expected == ValueType::UINT32_ARRAY || expected == ValueType::UINT64_ARRAY) &&
+        (actual == ValueType::UINT8_ARRAY || actual == ValueType::UINT16_ARRAY ||
+         actual == ValueType::UINT32_ARRAY || actual == ValueType::UINT64_ARRAY)) {
         return true;
     }
 
