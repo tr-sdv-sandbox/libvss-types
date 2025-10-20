@@ -80,9 +80,15 @@ if (temp.is_valid()) {
 using Value = std::variant<
     std::monostate,  // Empty/unset
     // Primitives
-    bool, int32_t, uint32_t, int64_t, uint64_t, float, double, std::string,
+    bool,
+    int8_t, int16_t, int32_t, int64_t,
+    uint8_t, uint16_t, uint32_t, uint64_t,
+    float, double, std::string,
     // Arrays
-    std::vector<bool>, std::vector<int32_t>, ..., std::vector<std::string>,
+    std::vector<bool>,
+    std::vector<int8_t>, std::vector<int16_t>, std::vector<int32_t>, std::vector<int64_t>,
+    std::vector<uint8_t>, std::vector<uint16_t>, std::vector<uint32_t>, std::vector<uint64_t>,
+    std::vector<float>, std::vector<double>, std::vector<std::string>,
     // Structs (VSS 4.0)
     std::shared_ptr<StructValue>,
     std::vector<std::shared_ptr<StructValue>>
@@ -94,8 +100,14 @@ using Value = std::variant<
 ```cpp
 enum class ValueType {
     UNSPECIFIED = 0,
-    // Primitives: STRING, BOOL, INT32, INT64, UINT32, UINT64, FLOAT, DOUBLE
-    // Arrays: STRING_ARRAY, BOOL_ARRAY, INT32_ARRAY, ... DOUBLE_ARRAY
+    // Primitives: STRING, BOOL,
+    //             INT8, INT16, INT32, INT64,
+    //             UINT8, UINT16, UINT32, UINT64,
+    //             FLOAT, DOUBLE
+    // Arrays: STRING_ARRAY, BOOL_ARRAY,
+    //         INT8_ARRAY, INT16_ARRAY, INT32_ARRAY, INT64_ARRAY,
+    //         UINT8_ARRAY, UINT16_ARRAY, UINT32_ARRAY, UINT64_ARRAY,
+    //         FLOAT_ARRAY, DOUBLE_ARRAY
     // Structs: STRUCT, STRUCT_ARRAY
 };
 ```
