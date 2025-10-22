@@ -15,15 +15,12 @@ TEST(QualityTest, SignalQualityToString) {
     EXPECT_STREQ(signal_quality_to_string(SignalQuality::VALID), "VALID");
     EXPECT_STREQ(signal_quality_to_string(SignalQuality::INVALID), "INVALID");
     EXPECT_STREQ(signal_quality_to_string(SignalQuality::NOT_AVAILABLE), "NOT_AVAILABLE");
-    EXPECT_STREQ(signal_quality_to_string(SignalQuality::STALE), "STALE");
-    EXPECT_STREQ(signal_quality_to_string(SignalQuality::OUT_OF_RANGE), "OUT_OF_RANGE");
 }
 
 TEST(QualityTest, SignalQualityFromString) {
     EXPECT_EQ(signal_quality_from_string("valid"), SignalQuality::VALID);
     EXPECT_EQ(signal_quality_from_string("INVALID"), SignalQuality::INVALID);
     EXPECT_EQ(signal_quality_from_string("not_available"), SignalQuality::NOT_AVAILABLE);
-    EXPECT_EQ(signal_quality_from_string("stale"), SignalQuality::STALE);
     EXPECT_FALSE(signal_quality_from_string("unknown_quality").has_value());
 }
 
@@ -55,12 +52,6 @@ TEST(QualityTest, QualifiedValueNotAvailable) {
     EXPECT_FALSE(unavailable.is_valid());
 }
 
-TEST(QualityTest, QualifiedValueStale) {
-    QualifiedValue<float> stale{50.0f, SignalQuality::STALE};
-
-    EXPECT_TRUE(stale.is_stale());
-    EXPECT_FALSE(stale.is_valid());
-}
 
 TEST(QualityTest, QualifiedValueValueOr) {
     QualifiedValue<int> with_value{42};
@@ -97,7 +88,7 @@ TEST(QualityTest, DynamicQualifiedValue) {
 }
 
 TEST(QualityTest, DynamicQualifiedValueInvalid) {
-    DynamicQualifiedValue dqv{Value{100.0f}, SignalQuality::OUT_OF_RANGE};
+    DynamicQualifiedValue dqv{Value{100.0f}, SignalQuality::INVALID};
 
     EXPECT_TRUE(dqv.is_invalid());
     EXPECT_FALSE(dqv.is_valid());

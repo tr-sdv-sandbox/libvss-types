@@ -47,22 +47,7 @@ enum class SignalQuality {
      * Sensor not present, disconnected, or not yet initialized.
      * Different from INVALID - not an error, just unavailable.
      */
-    NOT_AVAILABLE = 3,
-
-    /**
-     * @brief Signal value is stale/outdated
-     *
-     * Last update was too long ago. Value may still be technically
-     * valid but should be used with caution.
-     */
-    STALE = 4,
-
-    /**
-     * @brief Signal value is out of expected range
-     *
-     * Value exceeds min/max bounds defined in VSS specification.
-     */
-    OUT_OF_RANGE = 5
+    NOT_AVAILABLE = 3
 };
 
 /**
@@ -81,41 +66,6 @@ const char* signal_quality_to_string(SignalQuality quality);
  */
 std::optional<SignalQuality> signal_quality_from_string(const std::string& str);
 
-/**
- * @brief Strategy for handling invalid signals in DAG processing
- *
- * From libVSSDAG - how to handle signals marked as invalid/unavailable
- * when they are dependencies for derived signals.
- */
-enum class InvalidSignalStrategy {
-    /**
-     * @brief Propagate invalid status to dependent signals
-     *
-     * If input is invalid, mark outputs as invalid.
-     */
-    PROPAGATE,
-
-    /**
-     * @brief Use last valid value
-     *
-     * Hold previous valid value when signal becomes invalid.
-     */
-    USE_LAST_VALID,
-
-    /**
-     * @brief Use default value
-     *
-     * Substitute with predefined default when invalid.
-     */
-    USE_DEFAULT,
-
-    /**
-     * @brief Skip processing
-     *
-     * Don't update dependent signals when input is invalid.
-     */
-    SKIP
-};
 
 /**
  * @brief A value with associated quality and timestamp
@@ -172,7 +122,7 @@ struct QualifiedValue {
      * @brief Check if value is invalid (error state)
      */
     bool is_invalid() const {
-        return quality == SignalQuality::INVALID || quality == SignalQuality::OUT_OF_RANGE;
+        return quality == SignalQuality::INVALID;
     }
 
     /**
@@ -180,13 +130,6 @@ struct QualifiedValue {
      */
     bool is_not_available() const {
         return quality == SignalQuality::NOT_AVAILABLE;
-    }
-
-    /**
-     * @brief Check if value is stale
-     */
-    bool is_stale() const {
-        return quality == SignalQuality::STALE;
     }
 
     /**
@@ -256,7 +199,7 @@ struct DynamicQualifiedValue {
      * @brief Check if value is invalid (error state)
      */
     bool is_invalid() const {
-        return quality == SignalQuality::INVALID || quality == SignalQuality::OUT_OF_RANGE;
+        return quality == SignalQuality::INVALID;
     }
 
     /**
@@ -264,13 +207,6 @@ struct DynamicQualifiedValue {
      */
     bool is_not_available() const {
         return quality == SignalQuality::NOT_AVAILABLE;
-    }
-
-    /**
-     * @brief Check if value is stale
-     */
-    bool is_stale() const {
-        return quality == SignalQuality::STALE;
     }
 
     /**
