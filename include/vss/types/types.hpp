@@ -13,7 +13,7 @@
  * Key features:
  * - Type-safe Value variant (primitives, arrays, structs)
  * - Struct definitions and validation (VSS 4.0)
- * - Signal quality indicators (VALID/INVALID/NOT_AVAILABLE/STALE)
+ * - Signal quality indicators (VALID/INVALID/NOT_AVAILABLE)
  * - Type utilities and conversions
  * - NO dependencies on protobuf, gRPC, or KUKSA
  *

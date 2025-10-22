@@ -7,7 +7,7 @@ Provides type-safe VSS (Vehicle Signal Specification) types for use across multi
 ## Features
 
 - VSS 4.0 support (structs, arrays, nested types)
-- Signal quality indicators (VALID/INVALID/NOT_AVAILABLE/STALE/OUT_OF_RANGE)
+- Signal quality indicators (VALID/INVALID/NOT_AVAILABLE)
 - Type-safe value variant with compile-time and runtime checking
 - No dependencies on protobuf, gRPC, or KUKSA
 - Minimal dependencies, header-only where possible
@@ -119,9 +119,7 @@ enum class SignalQuality {
     UNKNOWN,        // Quality not specified
     VALID,          // Signal is valid and reliable
     INVALID,        // Sensor error, out of range, etc.
-    NOT_AVAILABLE,  // Sensor not present or disconnected
-    STALE,          // Value is outdated
-    OUT_OF_RANGE    // Value exceeds min/max bounds
+    NOT_AVAILABLE   // Sensor not present or disconnected
 };
 ```
 
