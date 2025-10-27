@@ -195,4 +195,253 @@ bool are_types_compatible(ValueType expected, ValueType actual) {
     return false;
 }
 
+Value convert_value_type(const Value& value, ValueType target_type) {
+    // Get current type
+    ValueType current_type = get_value_type(value);
+
+    // If already the right type, return unchanged
+    if (current_type == target_type) {
+        return value;
+    }
+
+    // If empty, return empty
+    if (current_type == ValueType::UNSPECIFIED) {
+        return value;
+    }
+
+    // Check if types are compatible
+    if (!are_types_compatible(target_type, current_type)) {
+        return Value{std::monostate{}};
+    }
+
+    // Perform conversion based on target type
+    return std::visit([target_type](auto&& val) -> Value {
+        using T = std::decay_t<decltype(val)>;
+
+        // Handle monostate
+        if constexpr (std::is_same_v<T, std::monostate>) {
+            return Value{std::monostate{}};
+        }
+
+        // Signed integer conversions
+        else if constexpr (std::is_same_v<T, int8_t> || std::is_same_v<T, int16_t> ||
+                           std::is_same_v<T, int32_t> || std::is_same_v<T, int64_t>) {
+            int64_t wide_val = static_cast<int64_t>(val);
+
+            switch (target_type) {
+                case ValueType::INT8:
+                    if (wide_val < INT8_MIN || wide_val > INT8_MAX) {
+                        return Value{std::monostate{}};  // Out of range
+                    }
+                    return Value{static_cast<int8_t>(wide_val)};
+
+                case ValueType::INT16:
+                    if (wide_val < INT16_MIN || wide_val > INT16_MAX) {
+                        return Value{std::monostate{}};
+                    }
+                    return Value{static_cast<int16_t>(wide_val)};
+
+                case ValueType::INT32:
+                    if (wide_val < INT32_MIN || wide_val > INT32_MAX) {
+                        return Value{std::monostate{}};
+                    }
+                    return Value{static_cast<int32_t>(wide_val)};
+
+                case ValueType::INT64:
+                    return Value{wide_val};
+
+                default:
+                    return Value{std::monostate{}};
+            }
+        }
+
+        // Unsigned integer conversions
+        else if constexpr (std::is_same_v<T, uint8_t> || std::is_same_v<T, uint16_t> ||
+                           std::is_same_v<T, uint32_t> || std::is_same_v<T, uint64_t>) {
+            uint64_t wide_val = static_cast<uint64_t>(val);
+
+            switch (target_type) {
+                case ValueType::UINT8:
+                    if (wide_val > UINT8_MAX) {
+                        return Value{std::monostate{}};
+                    }
+                    return Value{static_cast<uint8_t>(wide_val)};
+
+                case ValueType::UINT16:
+                    if (wide_val > UINT16_MAX) {
+                        return Value{std::monostate{}};
+                    }
+                    return Value{static_cast<uint16_t>(wide_val)};
+
+                case ValueType::UINT32:
+                    if (wide_val > UINT32_MAX) {
+                        return Value{std::monostate{}};
+                    }
+                    return Value{static_cast<uint32_t>(wide_val)};
+
+                case ValueType::UINT64:
+                    return Value{wide_val};
+
+                default:
+                    return Value{std::monostate{}};
+            }
+        }
+
+        // Floating point conversions
+        else if constexpr (std::is_same_v<T, float>) {
+            if (target_type == ValueType::DOUBLE) {
+                return Value{static_cast<double>(val)};
+            }
+            return Value{std::monostate{}};
+        }
+        else if constexpr (std::is_same_v<T, double>) {
+            if (target_type == ValueType::FLOAT) {
+                return Value{static_cast<float>(val)};
+            }
+            return Value{std::monostate{}};
+        }
+
+        // Array conversions - signed integers
+        else if constexpr (std::is_same_v<T, std::vector<int8_t>> ||
+                           std::is_same_v<T, std::vector<int16_t>> ||
+                           std::is_same_v<T, std::vector<int32_t>> ||
+                           std::is_same_v<T, std::vector<int64_t>>) {
+
+            switch (target_type) {
+                case ValueType::INT8_ARRAY: {
+                    std::vector<int8_t> result;
+                    result.reserve(val.size());
+                    for (auto v : val) {
+                        int64_t wide = static_cast<int64_t>(v);
+                        if (wide < INT8_MIN || wide > INT8_MAX) {
+                            return Value{std::monostate{}};
+                        }
+                        result.push_back(static_cast<int8_t>(wide));
+                    }
+                    return Value{std::move(result)};
+                }
+                case ValueType::INT16_ARRAY: {
+                    std::vector<int16_t> result;
+                    result.reserve(val.size());
+                    for (auto v : val) {
+                        int64_t wide = static_cast<int64_t>(v);
+                        if (wide < INT16_MIN || wide > INT16_MAX) {
+                            return Value{std::monostate{}};
+                        }
+                        result.push_back(static_cast<int16_t>(wide));
+                    }
+                    return Value{std::move(result)};
+                }
+                case ValueType::INT32_ARRAY: {
+                    std::vector<int32_t> result;
+                    result.reserve(val.size());
+                    for (auto v : val) {
+                        int64_t wide = static_cast<int64_t>(v);
+                        if (wide < INT32_MIN || wide > INT32_MAX) {
+                            return Value{std::monostate{}};
+                        }
+                        result.push_back(static_cast<int32_t>(wide));
+                    }
+                    return Value{std::move(result)};
+                }
+                case ValueType::INT64_ARRAY: {
+                    std::vector<int64_t> result;
+                    result.reserve(val.size());
+                    for (auto v : val) {
+                        result.push_back(static_cast<int64_t>(v));
+                    }
+                    return Value{std::move(result)};
+                }
+                default:
+                    return Value{std::monostate{}};
+            }
+        }
+
+        // Array conversions - unsigned integers
+        else if constexpr (std::is_same_v<T, std::vector<uint8_t>> ||
+                           std::is_same_v<T, std::vector<uint16_t>> ||
+                           std::is_same_v<T, std::vector<uint32_t>> ||
+                           std::is_same_v<T, std::vector<uint64_t>>) {
+
+            switch (target_type) {
+                case ValueType::UINT8_ARRAY: {
+                    std::vector<uint8_t> result;
+                    result.reserve(val.size());
+                    for (auto v : val) {
+                        uint64_t wide = static_cast<uint64_t>(v);
+                        if (wide > UINT8_MAX) {
+                            return Value{std::monostate{}};
+                        }
+                        result.push_back(static_cast<uint8_t>(wide));
+                    }
+                    return Value{std::move(result)};
+                }
+                case ValueType::UINT16_ARRAY: {
+                    std::vector<uint16_t> result;
+                    result.reserve(val.size());
+                    for (auto v : val) {
+                        uint64_t wide = static_cast<uint64_t>(v);
+                        if (wide > UINT16_MAX) {
+                            return Value{std::monostate{}};
+                        }
+                        result.push_back(static_cast<uint16_t>(wide));
+                    }
+                    return Value{std::move(result)};
+                }
+                case ValueType::UINT32_ARRAY: {
+                    std::vector<uint32_t> result;
+                    result.reserve(val.size());
+                    for (auto v : val) {
+                        uint64_t wide = static_cast<uint64_t>(v);
+                        if (wide > UINT32_MAX) {
+                            return Value{std::monostate{}};
+                        }
+                        result.push_back(static_cast<uint32_t>(wide));
+                    }
+                    return Value{std::move(result)};
+                }
+                case ValueType::UINT64_ARRAY: {
+                    std::vector<uint64_t> result;
+                    result.reserve(val.size());
+                    for (auto v : val) {
+                        result.push_back(static_cast<uint64_t>(v));
+                    }
+                    return Value{std::move(result)};
+                }
+                default:
+                    return Value{std::monostate{}};
+            }
+        }
+
+        // Array conversions - floating point
+        else if constexpr (std::is_same_v<T, std::vector<float>>) {
+            if (target_type == ValueType::DOUBLE_ARRAY) {
+                std::vector<double> result;
+                result.reserve(val.size());
+                for (float v : val) {
+                    result.push_back(static_cast<double>(v));
+                }
+                return Value{std::move(result)};
+            }
+            return Value{std::monostate{}};
+        }
+        else if constexpr (std::is_same_v<T, std::vector<double>>) {
+            if (target_type == ValueType::FLOAT_ARRAY) {
+                std::vector<float> result;
+                result.reserve(val.size());
+                for (double v : val) {
+                    result.push_back(static_cast<float>(v));
+                }
+                return Value{std::move(result)};
+            }
+            return Value{std::monostate{}};
+        }
+
+        // No conversion available
+        else {
+            return Value{std::monostate{}};
+        }
+    }, value);
+}
+
 } // namespace vss::types

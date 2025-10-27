@@ -4,6 +4,7 @@
  */
 
 #include <vss/types/quality.hpp>
+#include <vss/types/value.hpp>
 #include <algorithm>
 #include <cctype>
 
@@ -32,6 +33,42 @@ std::optional<SignalQuality> signal_quality_from_string(const std::string& str) 
         return SignalQuality::NOT_AVAILABLE;
 
     return std::nullopt;
+}
+
+DynamicQualifiedValue convert_qualified_value_type(
+    const DynamicQualifiedValue& qvalue,
+    ValueType target_type
+) {
+    // If quality is not VALID, don't attempt conversion
+    // Just preserve quality and timestamp, but don't convert value
+    if (qvalue.quality != SignalQuality::VALID) {
+        return qvalue;
+    }
+
+    // If value is empty, return as-is
+    if (is_empty(qvalue.value)) {
+        return qvalue;
+    }
+
+    // Attempt conversion
+    Value converted = convert_value_type(qvalue.value, target_type);
+
+    // Check if conversion succeeded
+    if (is_empty(converted)) {
+        // Conversion failed - return with INVALID quality
+        return DynamicQualifiedValue{
+            Value{std::monostate{}},
+            SignalQuality::INVALID,
+            qvalue.timestamp
+        };
+    }
+
+    // Conversion succeeded - return with original quality preserved
+    return DynamicQualifiedValue{
+        std::move(converted),
+        qvalue.quality,
+        qvalue.timestamp
+    };
 }
 
 } // namespace vss::types

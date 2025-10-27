@@ -205,6 +205,25 @@ std::optional<ValueType> value_type_from_string(const std::string& str);
 bool are_types_compatible(ValueType expected, ValueType actual);
 
 /**
+ * @brief Convert a value to a target type using safe narrowing/widening
+ *
+ * Performs type conversion when types are compatible:
+ * - Signed integers: int8 ↔ int16 ↔ int32 ↔ int64
+ * - Unsigned integers: uint8 ↔ uint16 ↔ uint32 ↔ uint64
+ * - Floating point: float ↔ double
+ * - Arrays: element-wise conversion for compatible types
+ *
+ * If value already matches target_type, returns value unchanged.
+ * If types are incompatible, returns empty Value (std::monostate).
+ * For narrowing conversions, values outside target range result in empty Value.
+ *
+ * @param value Source value to convert
+ * @param target_type Desired output type
+ * @return Converted value, or empty Value if conversion not possible
+ */
+Value convert_value_type(const Value& value, ValueType target_type);
+
+/**
  * @brief Check if value is empty (std::monostate)
  *
  * @param value The value to check

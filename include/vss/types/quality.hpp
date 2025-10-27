@@ -218,4 +218,23 @@ struct DynamicQualifiedValue {
     }
 };
 
+/**
+ * @brief Convert DynamicQualifiedValue to a target type with quality preservation
+ *
+ * Attempts to convert the value to target_type while preserving timestamp.
+ * Quality handling:
+ * - If conversion succeeds: preserves original quality
+ * - If types are incompatible: sets quality to INVALID
+ * - If narrowing out of range: sets quality to INVALID
+ * - If original quality was not VALID: preserves original quality, conversion not attempted
+ *
+ * @param qvalue Source qualified value
+ * @param target_type Desired value type
+ * @return Converted qualified value with appropriate quality
+ */
+DynamicQualifiedValue convert_qualified_value_type(
+    const DynamicQualifiedValue& qvalue,
+    ValueType target_type
+);
+
 } // namespace vss::types
