@@ -35,6 +35,24 @@ std::optional<SignalQuality> signal_quality_from_string(const std::string& str) 
     return std::nullopt;
 }
 
+bool dynamic_qualified_values_equal(const DynamicQualifiedValue& a, const DynamicQualifiedValue& b) {
+    return a.quality == b.quality && values_equal(a.value, b.value);
+}
+
+bool dynamic_qualified_value_changed_beyond_threshold(
+    const DynamicQualifiedValue& old_val,
+    const DynamicQualifiedValue& new_val,
+    double threshold) {
+
+    // Quality change always counts as a change
+    if (old_val.quality != new_val.quality) {
+        return true;
+    }
+
+    // Delegate to value comparison with threshold
+    return value_changed_beyond_threshold(old_val.value, new_val.value, threshold);
+}
+
 DynamicQualifiedValue convert_qualified_value_type(
     const DynamicQualifiedValue& qvalue,
     ValueType target_type

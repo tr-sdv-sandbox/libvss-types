@@ -4,6 +4,7 @@
  */
 
 #include <vss/types/value.hpp>
+#include <vss/types/struct.hpp>
 #include <gtest/gtest.h>
 
 using namespace vss::types;
@@ -198,4 +199,233 @@ TEST(ValueTest, TypeChecks) {
     EXPECT_TRUE(is_struct(ValueType::STRUCT));
     EXPECT_TRUE(is_struct(ValueType::STRUCT_ARRAY));
     EXPECT_FALSE(is_struct(ValueType::FLOAT));
+}
+
+// ============================================================================
+// Value comparison tests
+// ============================================================================
+
+TEST(ValueComparisonTest, PrimitiveEquality) {
+    // Same values
+    EXPECT_TRUE(values_equal(Value{42}, Value{42}));
+    EXPECT_TRUE(values_equal(Value{3.14}, Value{3.14}));
+    EXPECT_TRUE(values_equal(Value{true}, Value{true}));
+    EXPECT_TRUE(values_equal(Value{std::string("hello")}, Value{std::string("hello")}));
+
+    // Different values, same type
+    EXPECT_FALSE(values_equal(Value{42}, Value{43}));
+    EXPECT_FALSE(values_equal(Value{3.14}, Value{2.71}));
+    EXPECT_FALSE(values_equal(Value{true}, Value{false}));
+    EXPECT_FALSE(values_equal(Value{std::string("hello")}, Value{std::string("world")}));
+
+    // Different types
+    EXPECT_FALSE(values_equal(Value{42}, Value{42.0}));
+    EXPECT_FALSE(values_equal(Value{int32_t(42)}, Value{int64_t(42)}));
+    EXPECT_FALSE(values_equal(Value{1}, Value{true}));
+}
+
+TEST(ValueComparisonTest, ArrayEquality) {
+    // Same arrays
+    EXPECT_TRUE(values_equal(
+        Value{std::vector<int32_t>{1, 2, 3}},
+        Value{std::vector<int32_t>{1, 2, 3}}));
+
+    EXPECT_TRUE(values_equal(
+        Value{std::vector<double>{1.1, 2.2, 3.3}},
+        Value{std::vector<double>{1.1, 2.2, 3.3}}));
+
+    EXPECT_TRUE(values_equal(
+        Value{std::vector<std::string>{"a", "b", "c"}},
+        Value{std::vector<std::string>{"a", "b", "c"}}));
+
+    // Different arrays
+    EXPECT_FALSE(values_equal(
+        Value{std::vector<int32_t>{1, 2, 3}},
+        Value{std::vector<int32_t>{1, 2, 4}}));
+
+    EXPECT_FALSE(values_equal(
+        Value{std::vector<int32_t>{1, 2, 3}},
+        Value{std::vector<int32_t>{1, 2}}));
+
+    // Different array types
+    EXPECT_FALSE(values_equal(
+        Value{std::vector<int32_t>{1, 2, 3}},
+        Value{std::vector<int64_t>{1, 2, 3}}));
+}
+
+TEST(ValueComparisonTest, EmptyValues) {
+    Value empty1 = std::monostate{};
+    Value empty2 = std::monostate{};
+    Value not_empty = 42;
+
+    EXPECT_TRUE(values_equal(empty1, empty2));
+    EXPECT_FALSE(values_equal(empty1, not_empty));
+}
+
+TEST(ValueComparisonTest, StructEquality) {
+    // Create two identical structs
+    auto struct1 = std::make_shared<StructValue>("TestType");
+    struct1->set_field("x", Value{1.0});
+    struct1->set_field("y", Value{2.0});
+
+    auto struct2 = std::make_shared<StructValue>("TestType");
+    struct2->set_field("x", Value{1.0});
+    struct2->set_field("y", Value{2.0});
+
+    EXPECT_TRUE(values_equal(Value{struct1}, Value{struct2}));
+
+    // Different field values
+    auto struct3 = std::make_shared<StructValue>("TestType");
+    struct3->set_field("x", Value{1.0});
+    struct3->set_field("y", Value{3.0});  // Different!
+
+    EXPECT_FALSE(values_equal(Value{struct1}, Value{struct3}));
+
+    // Different type name
+    auto struct4 = std::make_shared<StructValue>("OtherType");
+    struct4->set_field("x", Value{1.0});
+    struct4->set_field("y", Value{2.0});
+
+    EXPECT_FALSE(values_equal(Value{struct1}, Value{struct4}));
+
+    // Different fields
+    auto struct5 = std::make_shared<StructValue>("TestType");
+    struct5->set_field("x", Value{1.0});
+    struct5->set_field("z", Value{2.0});  // Different field name
+
+    EXPECT_FALSE(values_equal(Value{struct1}, Value{struct5}));
+}
+
+TEST(ValueComparisonTest, NestedStructEquality) {
+    // Create nested structs
+    auto inner1 = std::make_shared<StructValue>("Inner");
+    inner1->set_field("value", Value{42});
+
+    auto outer1 = std::make_shared<StructValue>("Outer");
+    outer1->set_field("nested", Value{inner1});
+    outer1->set_field("name", Value{std::string("test")});
+
+    auto inner2 = std::make_shared<StructValue>("Inner");
+    inner2->set_field("value", Value{42});
+
+    auto outer2 = std::make_shared<StructValue>("Outer");
+    outer2->set_field("nested", Value{inner2});
+    outer2->set_field("name", Value{std::string("test")});
+
+    EXPECT_TRUE(values_equal(Value{outer1}, Value{outer2}));
+
+    // Change nested value
+    auto inner3 = std::make_shared<StructValue>("Inner");
+    inner3->set_field("value", Value{99});  // Different!
+
+    auto outer3 = std::make_shared<StructValue>("Outer");
+    outer3->set_field("nested", Value{inner3});
+    outer3->set_field("name", Value{std::string("test")});
+
+    EXPECT_FALSE(values_equal(Value{outer1}, Value{outer3}));
+}
+
+// ============================================================================
+// to_double tests
+// ============================================================================
+
+TEST(ToDoubleTest, NumericTypes) {
+    EXPECT_DOUBLE_EQ(to_double(Value{int8_t(42)}), 42.0);
+    EXPECT_DOUBLE_EQ(to_double(Value{int16_t(-100)}), -100.0);
+    EXPECT_DOUBLE_EQ(to_double(Value{int32_t(12345)}), 12345.0);
+    EXPECT_DOUBLE_EQ(to_double(Value{int64_t(9876543210LL)}), 9876543210.0);
+
+    EXPECT_DOUBLE_EQ(to_double(Value{uint8_t(255)}), 255.0);
+    EXPECT_DOUBLE_EQ(to_double(Value{uint16_t(65535)}), 65535.0);
+    EXPECT_DOUBLE_EQ(to_double(Value{uint32_t(123456)}), 123456.0);
+    EXPECT_DOUBLE_EQ(to_double(Value{uint64_t(9876543210ULL)}), 9876543210.0);
+
+    EXPECT_FLOAT_EQ(to_double(Value{3.14f}), 3.14);
+    EXPECT_DOUBLE_EQ(to_double(Value{2.71828}), 2.71828);
+}
+
+TEST(ToDoubleTest, BoolType) {
+    EXPECT_DOUBLE_EQ(to_double(Value{true}), 1.0);
+    EXPECT_DOUBLE_EQ(to_double(Value{false}), 0.0);
+}
+
+TEST(ToDoubleTest, NonNumericTypes) {
+    EXPECT_DOUBLE_EQ(to_double(Value{std::string("hello")}), 0.0);
+    EXPECT_DOUBLE_EQ(to_double(Value{std::monostate{}}), 0.0);
+    EXPECT_DOUBLE_EQ(to_double(Value{std::vector<int32_t>{1, 2, 3}}), 0.0);
+
+    auto s = std::make_shared<StructValue>("Test");
+    EXPECT_DOUBLE_EQ(to_double(Value{s}), 0.0);
+}
+
+// ============================================================================
+// value_changed_beyond_threshold tests
+// ============================================================================
+
+TEST(ThresholdTest, NumericWithThreshold) {
+    Value v1 = 100.0;
+    Value v2 = 100.5;
+    Value v3 = 105.0;
+
+    // Change of 0.5 is below threshold of 1.0
+    EXPECT_FALSE(value_changed_beyond_threshold(v1, v2, 1.0));
+
+    // Change of 5.0 exceeds threshold of 1.0
+    EXPECT_TRUE(value_changed_beyond_threshold(v1, v3, 1.0));
+
+    // Exact threshold boundary
+    Value v4 = 101.0;
+    EXPECT_TRUE(value_changed_beyond_threshold(v1, v4, 1.0));  // >= threshold
+}
+
+TEST(ThresholdTest, IntegerWithThreshold) {
+    Value v1 = int32_t(100);
+    Value v2 = int32_t(102);
+    Value v3 = int32_t(110);
+
+    EXPECT_FALSE(value_changed_beyond_threshold(v1, v2, 5.0));
+    EXPECT_TRUE(value_changed_beyond_threshold(v1, v3, 5.0));
+}
+
+TEST(ThresholdTest, ZeroThreshold) {
+    Value v1 = 100.0;
+    Value v2 = 100.0;
+    Value v3 = 100.001;
+
+    // With zero threshold, any difference is a change
+    EXPECT_FALSE(value_changed_beyond_threshold(v1, v2, 0.0));  // Same value
+    EXPECT_TRUE(value_changed_beyond_threshold(v1, v3, 0.0));   // Tiny difference
+}
+
+TEST(ThresholdTest, NonNumericAlwaysCompareExact) {
+    Value s1 = std::string("hello");
+    Value s2 = std::string("hello");
+    Value s3 = std::string("world");
+
+    // Threshold is ignored for non-numeric types
+    EXPECT_FALSE(value_changed_beyond_threshold(s1, s2, 1000.0));
+    EXPECT_TRUE(value_changed_beyond_threshold(s1, s3, 1000.0));
+}
+
+TEST(ThresholdTest, DifferentTypes) {
+    Value v1 = 100.0;
+    Value v2 = int32_t(100);
+
+    // Different types always considered a change
+    EXPECT_TRUE(value_changed_beyond_threshold(v1, v2, 1000.0));
+}
+
+TEST(ThresholdTest, StructComparison) {
+    auto struct1 = std::make_shared<StructValue>("Test");
+    struct1->set_field("speed", Value{50.0});
+
+    auto struct2 = std::make_shared<StructValue>("Test");
+    struct2->set_field("speed", Value{50.0});
+
+    auto struct3 = std::make_shared<StructValue>("Test");
+    struct3->set_field("speed", Value{60.0});
+
+    // Structs compared by deep equality (threshold ignored)
+    EXPECT_FALSE(value_changed_beyond_threshold(Value{struct1}, Value{struct2}, 100.0));
+    EXPECT_TRUE(value_changed_beyond_threshold(Value{struct1}, Value{struct3}, 100.0));
 }

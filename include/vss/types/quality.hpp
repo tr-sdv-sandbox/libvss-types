@@ -11,8 +11,10 @@
 
 #include "value.hpp"
 #include <chrono>
+#include <cmath>
 #include <optional>
 #include <stdexcept>
+#include <type_traits>
 
 namespace vss::types {
 
@@ -156,7 +158,77 @@ struct QualifiedValue {
         auto now = std::chrono::system_clock::now();
         return std::chrono::duration_cast<std::chrono::milliseconds>(now - timestamp);
     }
+
+    /**
+     * @brief Equality comparison (compares value and quality, ignores timestamp)
+     */
+    bool operator==(const QualifiedValue& other) const {
+        return value == other.value && quality == other.quality;
+    }
+
+    bool operator!=(const QualifiedValue& other) const {
+        return !(*this == other);
+    }
 };
+
+/**
+ * @brief Check if two QualifiedValues are equal (value and quality)
+ *
+ * Timestamps are ignored for equality comparison.
+ */
+template<typename T>
+bool qualified_values_equal(const QualifiedValue<T>& a, const QualifiedValue<T>& b) {
+    return a == b;
+}
+
+/**
+ * @brief Check if QualifiedValue changed beyond threshold
+ *
+ * For numeric types with threshold > 0, returns true if:
+ * - Quality changed, OR
+ * - Value difference exceeds threshold
+ *
+ * For non-numeric or threshold == 0, returns true if value or quality differs.
+ *
+ * @param old_val Previous qualified value
+ * @param new_val New qualified value
+ * @param threshold Minimum change to consider significant (0 = any change)
+ * @return true if change exceeds threshold, false otherwise
+ */
+template<typename T>
+bool qualified_value_changed_beyond_threshold(
+    const QualifiedValue<T>& old_val,
+    const QualifiedValue<T>& new_val,
+    double threshold) {
+
+    // Quality change always counts as a change
+    if (old_val.quality != new_val.quality) {
+        return true;
+    }
+
+    // If neither has value, no change
+    if (!old_val.value.has_value() && !new_val.value.has_value()) {
+        return false;
+    }
+
+    // If one has value and other doesn't, it's a change
+    if (old_val.value.has_value() != new_val.value.has_value()) {
+        return true;
+    }
+
+    // Both have values - compare them
+    if constexpr (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>) {
+        // Numeric type with threshold
+        if (threshold > 0) {
+            double diff = std::abs(static_cast<double>(*new_val.value) -
+                                   static_cast<double>(*old_val.value));
+            return diff >= threshold;
+        }
+    }
+
+    // Non-numeric or zero threshold: exact comparison
+    return *old_val.value != *new_val.value;
+}
 
 /**
  * @brief Dynamic qualified value (for runtime type usage)
@@ -216,7 +288,49 @@ struct DynamicQualifiedValue {
         auto now = std::chrono::system_clock::now();
         return std::chrono::duration_cast<std::chrono::milliseconds>(now - timestamp);
     }
+
+    /**
+     * @brief Equality comparison (compares value and quality, ignores timestamp)
+     */
+    bool operator==(const DynamicQualifiedValue& other) const {
+        return values_equal(value, other.value) && quality == other.quality;
+    }
+
+    bool operator!=(const DynamicQualifiedValue& other) const {
+        return !(*this == other);
+    }
 };
+
+/**
+ * @brief Check if two DynamicQualifiedValues are equal (value and quality)
+ *
+ * Performs deep comparison for struct values. Timestamps are ignored.
+ *
+ * @param a First qualified value
+ * @param b Second qualified value
+ * @return true if values and qualities are equal
+ */
+bool dynamic_qualified_values_equal(const DynamicQualifiedValue& a, const DynamicQualifiedValue& b);
+
+/**
+ * @brief Check if DynamicQualifiedValue changed beyond threshold
+ *
+ * For numeric types with threshold > 0, returns true if:
+ * - Quality changed, OR
+ * - Value difference exceeds threshold
+ *
+ * For non-numeric types (strings, structs, arrays) or threshold == 0,
+ * returns true if value or quality differs.
+ *
+ * @param old_val Previous qualified value
+ * @param new_val New qualified value
+ * @param threshold Minimum change to consider significant (0 = any change)
+ * @return true if change exceeds threshold, false otherwise
+ */
+bool dynamic_qualified_value_changed_beyond_threshold(
+    const DynamicQualifiedValue& old_val,
+    const DynamicQualifiedValue& new_val,
+    double threshold);
 
 /**
  * @brief Convert DynamicQualifiedValue to a target type with quality preservation

@@ -1,0 +1,180 @@
+// Copyright 2025 VSS-Types Contributors
+// SPDX-License-Identifier: Apache-2.0
+//
+// VSS Type System IDL - Aligned with vss::types C++ library
+//
+// This IDL defines DDS types that correspond to the vss::types C++ types.
+// It is designed to be included by other IDL files that need VSS type support.
+
+#ifndef VSS_TYPES_IDL
+#define VSS_TYPES_IDL
+
+module vss {
+module types {
+
+    // =========================================================================
+    // Signal Quality - matches vss::types::SignalQuality
+    // =========================================================================
+    enum Quality {
+        QUALITY_UNKNOWN,        // = 0: Quality not specified
+        QUALITY_VALID,          // = 1: Signal is valid and reliable
+        QUALITY_INVALID,        // = 2: Signal is invalid (sensor error, out of range)
+        QUALITY_NOT_AVAILABLE   // = 3: Signal not available (sensor disconnected)
+    };
+
+    // =========================================================================
+    // Value Type Discriminator - matches vss::types::ValueType
+    // =========================================================================
+    enum ValueType {
+        VALUE_TYPE_EMPTY,           // = 0: No value (uninitialized)
+
+        // Primitive types (1-12)
+        VALUE_TYPE_STRING,          // = 1
+        VALUE_TYPE_BOOL,            // = 2
+        VALUE_TYPE_INT8,            // = 3
+        VALUE_TYPE_INT16,           // = 4
+        VALUE_TYPE_INT32,           // = 5
+        VALUE_TYPE_INT64,           // = 6
+        VALUE_TYPE_UINT8,           // = 7
+        VALUE_TYPE_UINT16,          // = 8
+        VALUE_TYPE_UINT32,          // = 9
+        VALUE_TYPE_UINT64,          // = 10
+        VALUE_TYPE_FLOAT,           // = 11
+        VALUE_TYPE_DOUBLE,          // = 12
+
+        // Array types (20-31)
+        VALUE_TYPE_STRING_ARRAY,    // = 20
+        VALUE_TYPE_BOOL_ARRAY,      // = 21
+        VALUE_TYPE_INT8_ARRAY,      // = 22
+        VALUE_TYPE_INT16_ARRAY,     // = 23
+        VALUE_TYPE_INT32_ARRAY,     // = 24
+        VALUE_TYPE_INT64_ARRAY,     // = 25
+        VALUE_TYPE_UINT8_ARRAY,     // = 26
+        VALUE_TYPE_UINT16_ARRAY,    // = 27
+        VALUE_TYPE_UINT32_ARRAY,    // = 28
+        VALUE_TYPE_UINT64_ARRAY,    // = 29
+        VALUE_TYPE_FLOAT_ARRAY,     // = 30
+        VALUE_TYPE_DOUBLE_ARRAY,    // = 31
+
+        // Struct types (40-41) - for future VSS 4.0 struct support
+        VALUE_TYPE_STRUCT,          // = 40
+        VALUE_TYPE_STRUCT_ARRAY,    // = 41
+
+        // Binary data
+        VALUE_TYPE_BYTES            // = 50
+    };
+
+    // =========================================================================
+    // Struct Field - a named value within a struct (primitive types only)
+    // =========================================================================
+    // Note: StructField supports primitive and array types but not nested structs
+    // to avoid circular dependencies in IDL. For deeply nested structs, use
+    // bytes_value with serialization.
+    struct StructField {
+        string name;
+        ValueType type;
+
+        // Primitive values (only one is valid based on 'type')
+        boolean bool_value;
+        octet int8_value;
+        short int16_value;
+        long int32_value;
+        long long int64_value;
+        octet uint8_value;
+        unsigned short uint16_value;
+        unsigned long uint32_value;
+        unsigned long long uint64_value;
+        float float_value;
+        double double_value;
+        string string_value;
+
+        // Array values
+        sequence<boolean> bool_array;
+        sequence<octet> int8_array;
+        sequence<short> int16_array;
+        sequence<long> int32_array;
+        sequence<long long> int64_array;
+        sequence<octet> uint8_array;
+        sequence<unsigned short> uint16_array;
+        sequence<unsigned long> uint32_array;
+        sequence<unsigned long long> uint64_array;
+        sequence<float> float_array;
+        sequence<double> double_array;
+        sequence<string> string_array;
+    };
+
+    // =========================================================================
+    // Struct Value - a typed collection of named fields (VSS 4.0 struct support)
+    // =========================================================================
+    struct StructValue {
+        string type_name;                   // Struct type identifier
+        sequence<StructField> fields;       // Named fields
+    };
+
+    // =========================================================================
+    // Value Container - holds any VSS value type
+    // =========================================================================
+    // Note: DDS IDL doesn't support true unions with discriminator like C++ variant.
+    // We use a struct with type discriminator + all possible fields.
+    // Only the field matching 'type' is valid.
+    struct Value {
+        ValueType type;
+
+        // Primitive values (only one is valid based on 'type')
+        boolean bool_value;
+        octet int8_value;               // IDL uses octet for int8
+        short int16_value;
+        long int32_value;
+        long long int64_value;
+        octet uint8_value;
+        unsigned short uint16_value;
+        unsigned long uint32_value;
+        unsigned long long uint64_value;
+        float float_value;
+        double double_value;
+        string string_value;
+
+        // Array values
+        sequence<boolean> bool_array;
+        sequence<octet> int8_array;
+        sequence<short> int16_array;
+        sequence<long> int32_array;
+        sequence<long long> int64_array;
+        sequence<octet> uint8_array;
+        sequence<unsigned short> uint16_array;
+        sequence<unsigned long> uint32_array;
+        sequence<unsigned long long> uint64_array;
+        sequence<float> float_array;
+        sequence<double> double_array;
+        sequence<string> string_array;
+
+        // Struct values (VSS 4.0 support)
+        StructValue struct_value;
+        sequence<StructValue> struct_array;
+
+        // Binary data (for opaque/serialized data)
+        sequence<octet> bytes_value;
+    };
+
+    // =========================================================================
+    // Common Header - metadata for all message types
+    // =========================================================================
+    struct Header {
+        string source_id;               // Origin of the data (e.g., "can_bridge", "obd_probe")
+        long long timestamp_ns;         // Nanoseconds since epoch
+        unsigned long seq_num;          // Sequence number for ordering
+        string correlation_id;          // For request/response correlation
+    };
+
+    // =========================================================================
+    // Key-Value pair for metadata/attributes
+    // =========================================================================
+    struct KeyValue {
+        string key;
+        string value;
+    };
+
+};  // module types
+};  // module vss
+
+#endif // VSS_TYPES_IDL
