@@ -65,6 +65,53 @@ module types {
     };
 
     // =========================================================================
+    // Struct Field - a named value within a struct (primitive types only)
+    // =========================================================================
+    // Note: StructField supports primitive and array types but not nested structs
+    // to avoid circular dependencies in IDL. For deeply nested structs, use
+    // bytes_value with serialization.
+    struct StructField {
+        string name;
+        ValueType type;
+
+        // Primitive values (only one is valid based on 'type')
+        boolean bool_value;
+        octet int8_value;
+        short int16_value;
+        long int32_value;
+        long long int64_value;
+        octet uint8_value;
+        unsigned short uint16_value;
+        unsigned long uint32_value;
+        unsigned long long uint64_value;
+        float float_value;
+        double double_value;
+        string string_value;
+
+        // Array values
+        sequence<boolean> bool_array;
+        sequence<octet> int8_array;
+        sequence<short> int16_array;
+        sequence<long> int32_array;
+        sequence<long long> int64_array;
+        sequence<octet> uint8_array;
+        sequence<unsigned short> uint16_array;
+        sequence<unsigned long> uint32_array;
+        sequence<unsigned long long> uint64_array;
+        sequence<float> float_array;
+        sequence<double> double_array;
+        sequence<string> string_array;
+    };
+
+    // =========================================================================
+    // Struct Value - a typed collection of named fields (VSS 4.0 struct support)
+    // =========================================================================
+    struct StructValue {
+        string type_name;                   // Struct type identifier
+        sequence<StructField> fields;       // Named fields
+    };
+
+    // =========================================================================
     // Value Container - holds any VSS value type
     // =========================================================================
     // Note: DDS IDL doesn't support true unions with discriminator like C++ variant.
@@ -101,7 +148,11 @@ module types {
         sequence<double> double_array;
         sequence<string> string_array;
 
-        // Binary data (for structs, serialized data, etc.)
+        // Struct values (VSS 4.0 support)
+        StructValue struct_value;
+        sequence<StructValue> struct_array;
+
+        // Binary data (for opaque/serialized data)
         sequence<octet> bytes_value;
     };
 

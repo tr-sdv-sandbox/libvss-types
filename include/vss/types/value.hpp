@@ -264,4 +264,42 @@ inline bool is_struct(ValueType type) {
     return type == ValueType::STRUCT || type == ValueType::STRUCT_ARRAY;
 }
 
+/**
+ * @brief Check if two Values are equal
+ *
+ * Performs deep comparison for all types including nested structs.
+ * For structs, compares type_name and all fields recursively.
+ *
+ * @param a First value
+ * @param b Second value
+ * @return true if values are equal, false otherwise
+ */
+bool values_equal(const Value& a, const Value& b);
+
+/**
+ * @brief Extract numeric value as double
+ *
+ * For numeric types (int, uint, float, double), returns the value as double.
+ * For bool, returns 1.0 or 0.0.
+ * For non-numeric types (string, struct, array), returns 0.0.
+ *
+ * @param value The value to convert
+ * @return Numeric value as double, or 0.0 for non-numeric types
+ */
+double to_double(const Value& value);
+
+/**
+ * @brief Check if value changed beyond threshold
+ *
+ * For numeric types with threshold > 0, returns true if the absolute
+ * difference exceeds the threshold.
+ * For non-numeric types or threshold == 0, returns true if values differ.
+ *
+ * @param old_val Previous value
+ * @param new_val New value
+ * @param threshold Minimum change to consider significant (0 = any change)
+ * @return true if change exceeds threshold, false otherwise
+ */
+bool value_changed_beyond_threshold(const Value& old_val, const Value& new_val, double threshold);
+
 } // namespace vss::types

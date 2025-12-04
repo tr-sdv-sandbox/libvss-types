@@ -7,6 +7,7 @@
 #include <vss/types/struct.hpp>
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 
 namespace vss::types {
 
@@ -442,6 +443,124 @@ Value convert_value_type(const Value& value, ValueType target_type) {
             return Value{std::monostate{}};
         }
     }, value);
+}
+
+// Forward declaration for recursive struct comparison
+static bool structs_equal(const StructValue& a, const StructValue& b);
+
+// Helper for recursive value comparison
+static bool values_equal_impl(const Value& a, const Value& b) {
+    if (a.index() != b.index()) {
+        return false;
+    }
+
+    return std::visit([&b](auto&& val_a) -> bool {
+        using T = std::decay_t<decltype(val_a)>;
+        const auto& val_b = std::get<T>(b);
+
+        if constexpr (std::is_same_v<T, std::monostate>) {
+            return true;
+        } else if constexpr (std::is_same_v<T, std::shared_ptr<StructValue>>) {
+            if (!val_a && !val_b) return true;
+            if (!val_a || !val_b) return false;
+            return structs_equal(*val_a, *val_b);
+        } else if constexpr (std::is_same_v<T, std::vector<std::shared_ptr<StructValue>>>) {
+            if (val_a.size() != val_b.size()) return false;
+            for (size_t i = 0; i < val_a.size(); ++i) {
+                if (!val_a[i] && !val_b[i]) continue;
+                if (!val_a[i] || !val_b[i]) return false;
+                if (!structs_equal(*val_a[i], *val_b[i])) return false;
+            }
+            return true;
+        } else {
+            return val_a == val_b;
+        }
+    }, a);
+}
+
+static bool structs_equal(const StructValue& a, const StructValue& b) {
+    // Compare type names
+    if (a.type_name() != b.type_name()) {
+        return false;
+    }
+
+    // Compare fields
+    const auto& fields_a = a.fields();
+    const auto& fields_b = b.fields();
+
+    if (fields_a.size() != fields_b.size()) {
+        return false;
+    }
+
+    for (const auto& [key, val_a] : fields_a) {
+        auto it = fields_b.find(key);
+        if (it == fields_b.end()) {
+            return false;
+        }
+        if (!values_equal_impl(val_a, it->second)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool values_equal(const Value& a, const Value& b) {
+    return values_equal_impl(a, b);
+}
+
+double to_double(const Value& value) {
+    return std::visit([](auto&& v) -> double {
+        using T = std::decay_t<decltype(v)>;
+        if constexpr (std::is_same_v<T, bool>) {
+            return v ? 1.0 : 0.0;
+        } else if constexpr (std::is_same_v<T, int8_t> ||
+                             std::is_same_v<T, int16_t> ||
+                             std::is_same_v<T, int32_t> ||
+                             std::is_same_v<T, int64_t>) {
+            return static_cast<double>(v);
+        } else if constexpr (std::is_same_v<T, uint8_t> ||
+                             std::is_same_v<T, uint16_t> ||
+                             std::is_same_v<T, uint32_t> ||
+                             std::is_same_v<T, uint64_t>) {
+            return static_cast<double>(v);
+        } else if constexpr (std::is_same_v<T, float> ||
+                             std::is_same_v<T, double>) {
+            return static_cast<double>(v);
+        }
+        return 0.0;  // Non-numeric types
+    }, value);
+}
+
+bool value_changed_beyond_threshold(const Value& old_val, const Value& new_val, double threshold) {
+    // If types differ, it's a change
+    if (old_val.index() != new_val.index()) {
+        return true;
+    }
+
+    // For numeric types, check threshold
+    bool is_numeric = std::visit([](auto&& v) -> bool {
+        using T = std::decay_t<decltype(v)>;
+        return std::is_same_v<T, int8_t> ||
+               std::is_same_v<T, int16_t> ||
+               std::is_same_v<T, int32_t> ||
+               std::is_same_v<T, int64_t> ||
+               std::is_same_v<T, uint8_t> ||
+               std::is_same_v<T, uint16_t> ||
+               std::is_same_v<T, uint32_t> ||
+               std::is_same_v<T, uint64_t> ||
+               std::is_same_v<T, float> ||
+               std::is_same_v<T, double>;
+    }, new_val);
+
+    if (is_numeric && threshold > 0) {
+        double old_d = to_double(old_val);
+        double new_d = to_double(new_val);
+        return std::abs(new_d - old_d) >= threshold;
+    }
+
+    // For non-numeric or zero threshold, any difference is a change
+    return !values_equal(old_val, new_val);
 }
 
 } // namespace vss::types
